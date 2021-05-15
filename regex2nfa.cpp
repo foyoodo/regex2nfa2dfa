@@ -43,7 +43,7 @@ int dealand(ALGraph &graph, int l, char v) {
         graph.push_back(vector<ArcNode *>());
     }
 
-    graph[a].push_back(new ArcNode(v, l));
+    graph[l].push_back(new ArcNode(v, a));
 
     return a;
 }
@@ -74,6 +74,13 @@ void deal(ALGraph &graph, int l, int r) {
 }
 
 bool build(ALGraph &graph, const string &s) {
+    int left = cur++;
+    int right = cur++;
+
+    for (int i = graph.size(); i <= right; ++i) {
+        graph.push_back(vector<ArcNode *>());
+    }
+
     for (int i = 0; i < s.size(); ++i) {
         if (s[i] == '(' || s[i] == '|') {
             ops.push(s[i]);
@@ -82,12 +89,21 @@ bool build(ALGraph &graph, const string &s) {
 
             } else if (s[i] == '*') {
 
-            } else {
-                if (!vals.empty()) {
-                    char val = vals.top();
-                    vals.pop();
+            } else if (s[i] == '|') {
+                ops.push(s[i]);
+            } else {  // s[i] -> value
+                if (vals.empty()) {
+                    vals.push(s[i]);
+                } else {
+                    if (ops.empty() || ops.top() == '(') { // ab
+                        char val = vals.top();
+                        vals.pop();
+                        vals.push(s[i]);
+                        right = dealand(graph, right, val);
+                    } else {  // ops has '|' => a|b , don't calculate
+                        vals.push(s[i]);
+                    }
                 }
-                vals.push(s[i]);
             }
         }
     }
