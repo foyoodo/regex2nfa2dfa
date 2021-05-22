@@ -53,6 +53,33 @@ void newarc(ALGraph &graph, int l, int r, char c) {
     graph[l].push_back(new ArcNode(c, r));
 }
 
+void matchand(ALGraph &graph) {
+    while (nfas.size() >= 2) {
+        NFANode *node1 = nfas.top();
+        nfas.pop();
+        NFANode *node2 = nfas.top();
+        newarc(graph, node2->right, node1->left);
+        node2->right = node1->right;
+
+        delete node1;
+    }
+}
+
+void matchstar(ALGraph &graph) {
+    int l, r;
+    if (!nfas.empty()) {
+        NFANode *node = nfas.top();
+        newarc(graph, node->right, node->left);
+        l = getnumber(graph);
+        r = getnumber(graph);
+        newarc(graph, l, node->left);
+        newarc(graph, node->right, r);
+        newarc(graph, l, r);
+        node->left = l;
+        node->right = r;
+    }
+}
+
 void matcharc(ALGraph &graph, const string &s, int k, bool &flag) {
     int l, r;
     char c = s[k];
@@ -75,6 +102,16 @@ void matcharc(ALGraph &graph, const string &s, int k, bool &flag) {
         r = getnumber(graph);
         newarc(graph, l, r, c);
         nfas.push(new NFANode(l, r));
+        matchstar(graph);
+        NFANode *node = nfas.top();
+        nfas.pop();
+        if (!nfas.empty()) {
+            newarc(graph, nfas.top()->right, node->left);
+            nfas.top()->right = r;
+            delete node;
+        } else {
+            nfas.push(node);
+        }
     } else if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|') && flag)) {
         flag = false;
         l = getnumber(graph);
@@ -99,21 +136,6 @@ void matchadd(ALGraph &graph) {
         r = getnumber(graph);
         newarc(graph, l, node->left);
         newarc(graph, node->right, r);
-        node->left = l;
-        node->right = r;
-    }
-}
-
-void matchstar(ALGraph &graph) {
-    int l, r;
-    if (!nfas.empty()) {
-        NFANode *node = nfas.top();
-        newarc(graph, node->right, node->left);
-        l = getnumber(graph);
-        r = getnumber(graph);
-        newarc(graph, l, node->left);
-        newarc(graph, node->right, r);
-        newarc(graph, l, r);
         node->left = l;
         node->right = r;
     }
@@ -147,18 +169,6 @@ void matchbracket(ALGraph &graph) {
             ops.pop();
             break;
         }
-    }
-}
-
-void matchand(ALGraph &graph) {
-    while (nfas.size() >= 2) {
-        NFANode *node1 = nfas.top();
-        nfas.pop();
-        NFANode *node2 = nfas.top();
-        newarc(graph, node2->right, node1->left);
-        node2->right = node1->right;
-
-        delete node1;
     }
 }
 
@@ -221,9 +231,8 @@ NFA *build(ALGraph &graph, const string &s) {
             ops.push(c);
             flag = true;
         } else if (c == '*') {
-            matchstar(graph);
-            if (ops.empty() || (ops.top() == '|' && (nfas.size() > ops.size() + 1))) {
-                matchand(graph);
+            if (i > 0 && s[i - 1] == ')') {
+                matchstar(graph);
             }
         } else if (c == '+') {
             matchadd(graph);
@@ -232,7 +241,6 @@ NFA *build(ALGraph &graph, const string &s) {
         }
     }
     matchbracket(graph);
-    matchand(graph);
 
     NFA *nfa = createnfa(graph);
 
@@ -260,7 +268,7 @@ void order(ALGraph &graph) {
 }
 
 int main(int argc, char const *argv[]) {
-    ALGraph graph, graph2;
+    ALGraph graph, graph2, graph3;
     NFA *nfa = build(graph, "(a|b)*abb");
     order(graph);
     ordernfa(nfa);
@@ -268,5 +276,9 @@ int main(int argc, char const *argv[]) {
     NFA *nfa2 = build(graph2, "(a|b)*a|bcd");
     order(graph2);
     ordernfa(nfa2);
+    cout << "---------------------------" << endl;
+    NFA *nfa3 = build(graph3, "ab|cd*");
+    order(graph3);
+    ordernfa(nfa3);
     return 0;
 }
