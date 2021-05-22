@@ -40,7 +40,7 @@ void matcharc(ALGraph &graph, const string &s, int k) {
     int l, r;
     char c = s[k];
     if (k < s.size() - 1 && s[k + 1] != '*') {
-        if (nfas.empty() || (!ops.empty() && ops.top() == '|')) {
+        if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|'))) {
             l = getnumber(graph);
             r = getnumber(graph);
             newarc(graph, l, r, c);
@@ -52,7 +52,7 @@ void matcharc(ALGraph &graph, const string &s, int k) {
             newarc(graph, node->right, r, c);
             node->right = r;
         }
-    } else if (!ops.empty() && ops.top() == '|') {
+    } else if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|'))) {
         l = getnumber(graph);
         r = getnumber(graph);
         newarc(graph, l, r, c);
