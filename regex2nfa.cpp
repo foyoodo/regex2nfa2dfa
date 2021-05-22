@@ -4,6 +4,13 @@
 
 using namespace std;
 
+struct NFA {
+    vector<int> states;
+    vector<char> set;
+    int s0;
+    vector<int> final;
+};
+
 struct NFANode {
     int left, right;
 
@@ -36,11 +43,12 @@ void newarc(ALGraph &graph, int l, int r, char c) {
     graph[l].push_back(new ArcNode(c, r));
 }
 
-void matcharc(ALGraph &graph, const string &s, int k) {
+void matcharc(ALGraph &graph, const string &s, int k, bool &flag) {
     int l, r;
     char c = s[k];
     if (k < s.size() - 1 && s[k + 1] != '*') {
-        if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|'))) {
+        if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|') && flag)) {
+            flag = false;
             l = getnumber(graph);
             r = getnumber(graph);
             newarc(graph, l, r, c);
@@ -52,7 +60,8 @@ void matcharc(ALGraph &graph, const string &s, int k) {
             newarc(graph, node->right, r, c);
             node->right = r;
         }
-    } else if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|'))) {
+    } else if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|') && flag)) {
+        flag = false;
         l = getnumber(graph);
         r = getnumber(graph);
         newarc(graph, l, r, c);
@@ -115,14 +124,14 @@ void matchor(ALGraph &graph) {
 }
 
 void matchbracket(ALGraph &graph) {
-    while (ops.top() != '(') {
+    while (!ops.empty()) {
         if (ops.top() == '|') {
             matchor(graph);
             ops.pop();
+        } else if (ops.top() == '(') {
+            ops.pop();
+            break;
         }
-    }
-    if (!ops.empty() && ops.top() == '(') {
-        ops.pop();
     }
 }
 
@@ -139,22 +148,26 @@ void matchand(ALGraph &graph) {
 }
 
 void build(ALGraph &graph, const string &s) {
+    bool flag = false;
     for (int i = 0; i < s.size(); ++i) {
         char c = s[i];
         if (c == '(') {
             ops.push(c);
+            flag = true;
         } else if (c == ')') {
             matchbracket(graph);
         } else if (c == '|') {
             ops.push(c);
+            flag = true;
         } else if (c == '*') {
             matchstar(graph);
         } else if (c == '+') {
             matchadd(graph);
         } else {
-            matcharc(graph, s, i);
+            matcharc(graph, s, i, flag);
         }
     }
+    matchbracket(graph);
     matchand(graph);
 
     cur = -1;
@@ -179,8 +192,11 @@ void order(ALGraph &graph) {
 }
 
 int main(int argc, char const *argv[]) {
-    ALGraph graph;
+    ALGraph graph, graph2;
     build(graph, "(a|b)*abb");
     order(graph);
+    cout << "---------------------------" << endl;
+    build(graph2, "(a|b)*a|bcd");
+    order(graph2);
     return 0;
 }
