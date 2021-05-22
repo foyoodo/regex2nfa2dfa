@@ -4,9 +4,15 @@
 
 using namespace std;
 
+struct Move {
+    int si, sj;
+    char ch;
+};
+
 struct NFA {
     vector<int> states;
-    vector<char> set;
+    vector<char> sum;
+    vector<Move> moves;
     int s0;
     vector<int> final;
 };
@@ -60,6 +66,11 @@ void matcharc(ALGraph &graph, const string &s, int k, bool &flag) {
             newarc(graph, node->right, r, c);
             node->right = r;
         }
+    } else if (k < s.size() - 1 && s[k + 1] == '*') {
+        l = getnumber(graph);
+        r = getnumber(graph);
+        newarc(graph, l, r, c);
+        nfas.push(new NFANode(l, r));
     } else if (nfas.empty() || (!ops.empty() && (ops.top() == '(' || ops.top() == '|') && flag)) {
         flag = false;
         l = getnumber(graph);
@@ -147,7 +158,12 @@ void matchand(ALGraph &graph) {
     }
 }
 
-void build(ALGraph &graph, const string &s) {
+NFA *createnfa(ALGraph &graph) {
+    NFA *nfa = new NFA();
+    return nfa;
+}
+
+NFA *build(ALGraph &graph, const string &s) {
     bool flag = false;
     for (int i = 0; i < s.size(); ++i) {
         char c = s[i];
@@ -161,6 +177,9 @@ void build(ALGraph &graph, const string &s) {
             flag = true;
         } else if (c == '*') {
             matchstar(graph);
+            if (ops.empty() || (ops.top() == '|' && (nfas.size() > ops.size() + 1))) {
+                matchand(graph);
+            }
         } else if (c == '+') {
             matchadd(graph);
         } else {
@@ -169,6 +188,8 @@ void build(ALGraph &graph, const string &s) {
     }
     matchbracket(graph);
     matchand(graph);
+
+    NFA *nfa = createnfa(graph);
 
     cur = -1;
     while (!ops.empty()) {
@@ -179,6 +200,8 @@ void build(ALGraph &graph, const string &s) {
         nfas.pop();
         delete node;
     }
+
+    return nfa;
 }
 
 void order(ALGraph &graph) {
@@ -192,11 +215,14 @@ void order(ALGraph &graph) {
 }
 
 int main(int argc, char const *argv[]) {
-    ALGraph graph, graph2;
+    ALGraph graph, graph2, graph3;
     build(graph, "(a|b)*abb");
     order(graph);
     cout << "---------------------------" << endl;
     build(graph2, "(a|b)*a|bcd");
     order(graph2);
+    cout << "---------------------------" << endl;
+    build(graph3, "ab|cd*");
+    order(graph3);
     return 0;
 }
