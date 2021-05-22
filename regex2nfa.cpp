@@ -109,6 +109,8 @@ void matchor(ALGraph &graph) {
         newarc(graph, node2->right, r);
         node2->left = l;
         node2->right = r;
+
+        delete node1;
     }
 }
 
@@ -131,6 +133,8 @@ void matchand(ALGraph &graph) {
         NFANode *node2 = nfas.top();
         newarc(graph, node2->right, node1->left);
         node2->right = node1->right;
+
+        delete node1;
     }
 }
 
