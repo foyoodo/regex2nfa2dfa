@@ -156,6 +156,16 @@ void build(ALGraph &graph, const string &s) {
         }
     }
     matchand(graph);
+
+    cur = -1;
+    while (!ops.empty()) {
+        ops.pop();
+    }
+    while (!nfas.empty()) {
+        NFANode *node = nfas.top();
+        nfas.pop();
+        delete node;
+    }
 }
 
 void order(ALGraph &graph) {
