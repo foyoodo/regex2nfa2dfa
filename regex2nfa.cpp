@@ -221,8 +221,5 @@ int main(int argc, char const *argv[]) {
     cout << "---------------------------" << endl;
     build(graph2, "(a|b)*a|bcd");
     order(graph2);
-    cout << "---------------------------" << endl;
-    build(graph3, "ab|cd*");
-    order(graph3);
     return 0;
 }
