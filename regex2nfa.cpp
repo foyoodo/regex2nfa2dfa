@@ -1,17 +1,21 @@
+#include <numeric>
 #include <iostream>
 #include <stack>
 #include <vector>
+#include <set>
 
 using namespace std;
 
 struct Move {
     int si, sj;
     char ch;
+
+    Move(int _si, int _sj, char _ch) : si(_si), sj(_sj), ch(_ch) {}
 };
 
 struct NFA {
     vector<int> states;
-    vector<char> sum;
+    set<char> sum;
     vector<Move> moves;
     int s0;
     vector<int> final;
@@ -160,7 +164,48 @@ void matchand(ALGraph &graph) {
 
 NFA *createnfa(ALGraph &graph) {
     NFA *nfa = new NFA();
+    nfa->states.resize(cur + 1);
+    vector<bool> visited(cur + 1);
+    iota(nfa->states.begin(), nfa->states.end(), 0);
+    for (int i = 0; i < graph.size(); ++i) {
+        for (ArcNode *node : graph[i]) {
+            nfa->sum.insert(node->val);
+            nfa->moves.emplace_back(i, node->adjvex, node->val);
+            visited[node->adjvex] = true;
+        }
+        if (graph[i].empty()) {
+            nfa->final.push_back(i);
+        }
+    }
+    for (int i = 0; i < visited.size(); ++i) {
+        if (!visited[i]) {
+            nfa->s0 = i;
+            break;
+        }
+    }
     return nfa;
+}
+
+void ordernfa(NFA *nfa) {
+    cout << "----- NFA BEG -----" << endl;
+    cout << ">> S:";
+    for (int s : nfa->states) {
+        cout << " " << s;
+    }
+    cout << endl << ">> CharSet:";
+    for (auto it = nfa->sum.begin(); it != nfa->sum.end(); ++it) {
+        cout << " " << *it;
+    }
+    cout << endl << ">> Move";
+    for (Move &m : nfa->moves) {
+        printf("\nmove(%d, %c) = %d", m.si, m.ch, m.sj);
+    }
+    cout << endl << ">> s0: " << nfa->s0;
+    cout << endl << ">> F:";
+    for (int v : nfa->final) {
+        cout << " " << v;
+    }
+    cout << endl << "----- NFA END -----" << endl;
 }
 
 NFA *build(ALGraph &graph, const string &s) {
@@ -215,11 +260,13 @@ void order(ALGraph &graph) {
 }
 
 int main(int argc, char const *argv[]) {
-    ALGraph graph, graph2, graph3;
-    build(graph, "(a|b)*abb");
+    ALGraph graph, graph2;
+    NFA *nfa = build(graph, "(a|b)*abb");
     order(graph);
+    ordernfa(nfa);
     cout << "---------------------------" << endl;
-    build(graph2, "(a|b)*a|bcd");
+    NFA *nfa2 = build(graph2, "(a|b)*a|bcd");
     order(graph2);
+    ordernfa(nfa2);
     return 0;
 }
