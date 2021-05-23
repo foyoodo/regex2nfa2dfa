@@ -1,6 +1,7 @@
 #ifndef __ALGRAPH_H__
 #define __ALGRAPH_H__
 
+#include <algorithm>
 #include <vector>
 
 #include "arcnode.h"
@@ -67,6 +68,19 @@ void orderdgraph(ALGraph &graph) {
         }
         printf("\n");
     }
+}
+
+int targetdgraph(ALGraph &graph, int si, char ch) {
+    int sj = -1;
+    if (si < graph.size()) {
+        for (ArcNode &arc : graph[si]) {
+            vector<char>::iterator it = find(arc.vals->begin(), arc.vals->end(), ch);
+            if (it != arc.vals->end()) {
+                sj = arc.adjvex;
+            }
+        }
+    }
+    return sj;
 }
 
 #endif
