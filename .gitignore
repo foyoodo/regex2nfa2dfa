@@ -1,2 +1,3 @@
 regex2nfa
-buildgraph
+algraphtest
+dfatest
