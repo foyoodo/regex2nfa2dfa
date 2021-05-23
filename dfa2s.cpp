@@ -25,6 +25,17 @@ DFA *simplifydfa(DFA &dfa) {
 
     ordersets(sets);
 
+    for (auto it = sets.begin(); it != sets.end(); ++it) {
+        vector<int> state;
+        for (int v : *it) {
+            state.push_back(v);
+        }
+        newdfa->states.push_back(std::move(state));
+    }
+
+    newdfa->sum = dfa.sum;
+    newdfa->s0 = 0;
+
     return newdfa;
 }
 
@@ -178,6 +189,29 @@ int main(int argc, char const *argv[]) {
     dfa2.final = {3, 5};
 
     simplifydfa(dfa2);
+
+    cout << "--------------------------" << endl;
+
+    DFA dfa3;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'a');
+    moves.emplace_back(0, 2, 'b');
+    moves.emplace_back(2, 3, 'a');
+    moves.emplace_back(2, 4, 'b');
+    moves.emplace_back(3, 3, 'a');
+    moves.emplace_back(3, 4, 'b');
+    moves.emplace_back(4, 3, 'a');
+    moves.emplace_back(4, 4, 'b');
+
+    dfa3.states = vector<vector<int>>(5);
+    dfa3.sum.insert('a');
+    dfa3.sum.insert('b');
+    dfa3.moves = std::move(moves);
+    dfa3.s0 = 0;
+    dfa3.final = {1, 2, 3, 4};
+
+    simplifydfa(dfa3);
 
     return 0;
 }
