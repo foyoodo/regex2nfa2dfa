@@ -77,7 +77,8 @@ void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets) {
             set<int> st0, st1;
             for (int si : st) {
                 for (auto it = dfa.sum.begin(); it != dfa.sum.end(); ++it) {
-                    if (outofset(graph, st, si, *it) == 1) {
+                    int ret = outofset(graph, st, si, *it);
+                    if (ret == 1 || ret == -2) {
                         st1.insert(si);
                     }
                 }
@@ -102,16 +103,29 @@ bool cansplit(DFA &dfa, ALGraph &graph, set<int> &st) {
     }
     set<char> cst;
     bool hasoutofset = false, hasinofset = false;
+    int cnt = 0;
     for (int si : st) {
+        bool flag = true;
         for (auto it = dfa.sum.begin(); it != dfa.sum.end(); ++it) {
             int ret = outofset(graph, st, si, *it);
             if (ret == 1) {
                 hasoutofset = true;
                 cst.insert(*it);
+                if (flag) {
+                    flag = false;
+                    ++cnt;
+                }
             } else if (ret == 0) {
                 hasinofset = true;
+                if (flag) {
+                    flag = false;
+                    ++cnt;
+                }
             }
         }
+    }
+    if (cnt > 0 && cnt < st.size()) {
+        return true;
     }
     if (!hasoutofset) {
         return false;
@@ -125,11 +139,12 @@ bool cansplit(DFA &dfa, ALGraph &graph, set<int> &st) {
 //  1 : out of set
 //  0 : in the set
 // -1 : no edge
+// -2 : no out
 int outofset(ALGraph &graph, set<int> &st, int si, char ch) {
     int sj = -1;
     if (si < graph.size()) {
         if (graph[si].size() == 0) {
-            return false;
+            return -2;
         }
         for (ArcNode &arc : graph[si]) {
             if (arc.val == ch) {
