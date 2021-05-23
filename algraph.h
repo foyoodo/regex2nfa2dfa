@@ -77,6 +77,7 @@ int targetdgraph(ALGraph &graph, int si, char ch) {
             vector<char>::iterator it = find(arc.vals->begin(), arc.vals->end(), ch);
             if (it != arc.vals->end()) {
                 sj = arc.adjvex;
+                break;
             }
         }
     }
