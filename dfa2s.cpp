@@ -6,29 +6,24 @@
 
 using namespace std;
 
-void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets);
+int outofset(ALGraph &graph, set<int> &st, int si, char ch);
 bool cansplit(DFA &dfa, ALGraph &graph, set<int> &st);
 void initsets(DFA &dfa, vector<set<int>> &sets);
-bool outofset(ALGraph &graph, set<int> &st, int si, char ch);
+void orderset(set<int> &st);
+void ordersets(vector<set<int>> &sets);
+void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets);
 
 DFA *simplifydfa(DFA &dfa) {
     DFA *newdfa = new DFA();
 
     ALGraph graph;
     buildngraph(graph, dfa.moves);
-    // orderngraph(graph);
 
     vector<set<int>> sets;
     initsets(dfa, sets);
     split(dfa, graph, sets);
 
-    // for (int v : sets[0]) {
-    //     for (auto it = dfa.sum.begin(); it != dfa.sum.end(); ++it) {
-    //         if (outofset(graph, sets[0], v, *it)) {
-    //             cout << v << endl;
-    //         }
-    //     }
-    // }
+    ordersets(sets);
 
     return newdfa;
 }
@@ -48,13 +43,14 @@ void initsets(DFA &dfa, vector<set<int>> &sets) {
 }
 
 void orderset(set<int> &st) {
+    cout << "{ ";
     for (auto it = st.begin(); it != st.end(); ++it) {
         if (it != st.begin()) {
-            cout << " ";
+            cout << ", ";
         }
         cout << *it;
     }
-    cout << endl;
+    cout << " }" << endl;
 }
 
 void ordersets(vector<set<int>> &sets) {
@@ -68,51 +64,62 @@ void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets) {
         set<int> &st = sets[i];
         if (cansplit(dfa, graph, st)) {
             set<int> st0, st1;
-
             for (int si : st) {
                 for (auto it = dfa.sum.begin(); it != dfa.sum.end(); ++it) {
-                    if (outofset(graph, st, si, *it)) {
+                    if (outofset(graph, st, si, *it) == 1) {
                         st1.insert(si);
                     }
                 }
             }
-
             for (int si : st) {
                 if (st1.find(si) == st1.end()) {
                     st0.insert(si);
                 }
             }
-
             sets.erase(sets.begin() + i);
             sets.insert(sets.begin() + i, std::move(st1));
             sets.insert(sets.begin() + i, std::move(st0));
-            // ordersets(sets);
             split(dfa, graph, sets);
             break;
         }
     }
-    // ordersets(sets);
 }
 
 bool cansplit(DFA &dfa, ALGraph &graph, set<int> &st) {
     if (st.size() <= 1) {
-        cout << "<= 1" << endl;
         return false;
     }
-    for (int v : st) {
+    set<char> cst;
+    bool hasoutofset = false, hasinofset = false;
+    for (int si : st) {
         for (auto it = dfa.sum.begin(); it != dfa.sum.end(); ++it) {
-            if (outofset(graph, st, v, *it)) {
-                return true;
+            int ret = outofset(graph, st, si, *it);
+            if (ret == 1) {
+                hasoutofset = true;
+                cst.insert(*it);
+            } else if (ret == 0) {
+                hasinofset = true;
             }
         }
     }
-    orderset(st);
-    return false;
+    if (!hasoutofset) {
+        return false;
+    }
+    if (hasoutofset && hasinofset) {
+        return true;
+    }
+    return cst.size() > 1;
 }
 
-bool outofset(ALGraph &graph, set<int> &st, int si, char ch) {
+//  1 : out of set
+//  0 : in the set
+// -1 : no edge
+int outofset(ALGraph &graph, set<int> &st, int si, char ch) {
     int sj = -1;
     if (si < graph.size()) {
+        if (graph[si].size() == 0) {
+            return false;
+        }
         for (ArcNode &arc : graph[si]) {
             if (arc.val == ch) {
                 sj = arc.adjvex;
@@ -120,7 +127,13 @@ bool outofset(ALGraph &graph, set<int> &st, int si, char ch) {
             }
         }
     }
-    return sj >= 0 && st.find(sj) == st.end();
+    if (sj >= 0 && st.find(sj) == st.end()) {
+        return 1;
+    }
+    if (sj < 0) {
+        return -1;
+    }
+    return 0;
 }
 
 int main(int argc, char const *argv[]) {
@@ -143,11 +156,9 @@ int main(int argc, char const *argv[]) {
     dfa.s0 = 0;
     dfa.final = {1, 2, 3};
 
-    ALGraph graph;
-    buildngraph(graph, dfa.moves);
-    // orderngraph(graph);
+    simplifydfa(dfa);
 
-    // cout << "--------------------------" << endl;
+    cout << "--------------------------" << endl;
 
     DFA dfa2;
 
