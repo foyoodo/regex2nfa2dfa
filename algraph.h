@@ -16,6 +16,10 @@ inline void increase(ALGraph &graph, int k) {
     }
 }
 
+void newarc(ALGraph &graph, int l, int r) {
+    graph[l].emplace_back('$', r);
+}
+
 void newarc(ALGraph &graph, int l, int r, char c) {
     increase(graph, max(l, r));
     graph[l].emplace_back(c, r);
