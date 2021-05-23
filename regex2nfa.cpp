@@ -4,14 +4,9 @@
 #include <stack>
 #include <vector>
 
+#include "move.h"
+
 using namespace std;
-
-struct Move {
-    int si, sj;
-    char ch;
-
-    Move(int _si, int _sj, char _ch) : si(_si), sj(_sj), ch(_ch) {}
-};
 
 struct NFA {
     vector<int> states;
