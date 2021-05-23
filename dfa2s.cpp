@@ -138,8 +138,8 @@ bool cansplit(DFA &dfa, ALGraph &graph, set<int> &st) {
 
 //  1 : out of set
 //  0 : in the set
-// -1 : no edge
-// -2 : no out
+// -1 : not right edge
+// -2 : no edge
 int outofset(ALGraph &graph, set<int> &st, int si, char ch) {
     int sj = -1;
     if (si < graph.size()) {
