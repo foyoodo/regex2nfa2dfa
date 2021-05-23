@@ -228,5 +228,30 @@ int main(int argc, char const *argv[]) {
 
     simplifydfa(dfa3);
 
+    cout << "--------------------------" << endl;
+
+    DFA dfa4;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'a');
+    moves.emplace_back(0, 2, 'b');
+    moves.emplace_back(1, 1, 'a');
+    moves.emplace_back(1, 3, 'b');
+    moves.emplace_back(2, 1, 'a');
+    moves.emplace_back(2, 2, 'b');
+    moves.emplace_back(3, 1, 'a');
+    moves.emplace_back(3, 4, 'b');
+    moves.emplace_back(4, 1, 'a');
+    moves.emplace_back(4, 2, 'b');
+
+    dfa4.states = vector<vector<int>>(5);
+    dfa4.sum.insert('a');
+    dfa4.sum.insert('b');
+    dfa4.moves = std::move(moves);
+    dfa4.s0 = 0;
+    dfa4.final = {4};
+
+    simplifydfa(dfa4);
+
     return 0;
 }
