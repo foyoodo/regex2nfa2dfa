@@ -67,19 +67,21 @@ int main(int argc, char const *argv[]) {
     moves.clear();
     moves.emplace_back(0, 1, 'a');
     moves.emplace_back(0, 2, 'b');
-    moves.emplace_back(2, 3, 'a');
-    moves.emplace_back(2, 4, 'b');
+    moves.emplace_back(1, 3, 'a');
+    moves.emplace_back(1, 4, 'b');
+    moves.emplace_back(2, 1, 'a');
+    moves.emplace_back(2, 2, 'b');
     moves.emplace_back(3, 3, 'a');
     moves.emplace_back(3, 4, 'b');
-    moves.emplace_back(4, 3, 'a');
-    moves.emplace_back(4, 4, 'b');
+    moves.emplace_back(4, 1, 'a');
+    moves.emplace_back(4, 2, 'b');
 
     dfa3.states = vector<vector<int>>(5);
     dfa3.sum.insert('a');
     dfa3.sum.insert('b');
     dfa3.moves = std::move(moves);
     dfa3.s0 = 0;
-    dfa3.final = {1, 2, 3, 4};
+    dfa3.final = {3, 4};
 
     simplifydfa(dfa3);
 
@@ -107,6 +109,29 @@ int main(int argc, char const *argv[]) {
     dfa4.final = {4};
 
     simplifydfa(dfa4);
+
+    cout << "--------------------------" << endl;
+
+    DFA dfa5;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'a');
+    moves.emplace_back(0, 2, 'b');
+    moves.emplace_back(2, 3, 'a');
+    moves.emplace_back(2, 4, 'b');
+    moves.emplace_back(3, 3, 'a');
+    moves.emplace_back(3, 4, 'b');
+    moves.emplace_back(4, 3, 'a');
+    moves.emplace_back(4, 4, 'b');
+
+    dfa5.states = vector<vector<int>>(5);
+    dfa5.sum.insert('a');
+    dfa5.sum.insert('b');
+    dfa5.moves = std::move(moves);
+    dfa5.s0 = 0;
+    dfa5.final = {1, 2, 3, 4};
+
+    simplifydfa(dfa5);
 
     return 0;
 }
