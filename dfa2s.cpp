@@ -13,7 +13,10 @@ void orderset(set<int> &st);
 void ordersets(vector<set<int>> &sets);
 void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets);
 
-DFA *simplifydfa(DFA &dfa) {
+// 递归深度
+int deep = 0;
+
+DFA &simplifydfa(DFA &dfa) {
     DFA *newdfa = new DFA();
 
     ALGraph graph;
@@ -22,25 +25,34 @@ DFA *simplifydfa(DFA &dfa) {
     vector<set<int>> sets;
     initsets(dfa, sets);
     split(dfa, graph, sets);
+    deep = 0;
 
+    cout << ">>> ordersets" << endl;
     ordersets(sets);
-
-    for (auto it = sets.begin(); it != sets.end(); ++it) {
-        vector<int> state;
-        for (int v : *it) {
-            state.push_back(v);
+    cout << ">>> cansplit" << endl;
+    for (auto &st : sets) {
+        if (cansplit(dfa, graph, st)) {
+            orderset(st);
         }
-        newdfa->states.push_back(std::move(state));
     }
 
-    newdfa->sum = dfa.sum;
-    newdfa->s0 = 0;
+    // for (auto it = sets.begin(); it != sets.end(); ++it) {
+    //     vector<int> state;
+    //     for (int v : *it) {
+    //         state.push_back(v);
+    //     }
+    //     newdfa->states.push_back(std::move(state));
+    // }
 
-    return newdfa;
+    // newdfa->sum = dfa.sum;
+    // newdfa->s0 = 0;
+
+    return *newdfa;
 }
 
+// 初始化 sets，按（非）终态集进行切分
 void initsets(DFA &dfa, vector<set<int>> &sets) {
-    set<int> start, final;  // 非终态集，终态集
+    set<int> start, final;
     for (int &v : dfa.final) {
         final.insert(v);
     }
@@ -53,6 +65,7 @@ void initsets(DFA &dfa, vector<set<int>> &sets) {
     sets.push_back(std::move(final));
 }
 
+// 遍历 set
 void orderset(set<int> &st) {
     cout << "{ ";
     for (auto it = st.begin(); it != st.end(); ++it) {
@@ -64,6 +77,7 @@ void orderset(set<int> &st) {
     cout << " }" << endl;
 }
 
+// 遍历 sets
 void ordersets(vector<set<int>> &sets) {
     for (auto &st : sets) {
         orderset(st);
@@ -71,6 +85,9 @@ void ordersets(vector<set<int>> &sets) {
 }
 
 void split(DFA &dfa, ALGraph &graph, vector<set<int>> &sets) {
+    if (++deep >= 10) {
+        return;
+    }
     for (int i = 0; i < sets.size(); ++i) {
         set<int> &st = sets[i];
         if (cansplit(dfa, graph, st)) {
