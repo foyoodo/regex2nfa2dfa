@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <set>
 
 #include "algraph.h"
 #include "dfa.h"
@@ -10,6 +11,8 @@ using namespace std;
 
 DFA &simplifydfa(DFA &dfa);
 sset<sset<int>> &initsets(DFA &dfa);
+bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
+void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
 
 int main(int argc, char const *argv[]) {
     DFA dfa;
@@ -36,6 +39,8 @@ int main(int argc, char const *argv[]) {
     return 0;
 }
 
+static int deep;
+
 DFA &simplifydfa(DFA &dfa) {
     DFA *newdfa = new DFA();
 
@@ -43,9 +48,87 @@ DFA &simplifydfa(DFA &dfa) {
     buildngraph(graph, dfa.moves);
 
     sset<sset<int>> sets = initsets(dfa);
-    // sets.order();
+
+    deep = 0;
+    split(graph, dfa.sum, sets);
 
     return *newdfa;
+}
+
+// 判断 t 和 s 是否可区分，true 代表可区分，false 代表不可区分
+bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w) {
+    bool ret = false;
+    if (max(t, s) < graph.size()) {
+        int ft = -1, fs = ft;
+        for (auto &node : graph[t]) {
+            if (node.val == w) {
+                ft = node.adjvex;
+                break;
+            }
+        }
+        for (auto &node : graph[s]) {
+            if (node.val == w) {
+                fs = node.adjvex;
+                break;
+            }
+        }
+        if (ft != fs) {
+            for (auto &st : sets) {
+                if ((st.find(ft) != st.end()) && (st.find(fs) != st.end())) {
+                    ret = true;
+                    break;
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k) {
+    bool ret = true;
+    sset<int> &st = sets[k];
+    if (st.size() <= 1) {
+        ret = false;
+    } else {
+        sset<int> st0(st.final), st1(st.final);
+        int first = *st.begin();
+        st0.insert(first);
+        for (auto it = st.begin(); it != st.end(); ++it) {
+            if (it == st.begin()) {
+                continue;
+            }
+            for (char w : sum) {
+                if (check(graph, sets, first, *it, w)) {
+                    st0.insert(*it);
+                } else {
+                    st1.insert(*it);
+                }
+            }
+        }
+        if (st0.size() == st.size()) {
+            ret = false;
+        } else {
+            auto it = sets.begin() + k;
+            sets.erase(it);
+            sets.insert(it, std::move(st1));
+            sets.insert(it, std::move(st0));
+        }
+    }
+    return ret;
+}
+
+void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
+    if (++deep > 5) {
+        return;
+    }
+    for (int i = 0; i < sets.size(); ++i) {
+        sset<int> &st = sets[i];
+        if (split(graph, sum, sets, i)) {
+            sets.order();
+            split(graph, sum, sets);
+            break;
+        }
+    }
 }
 
 // 初始化 sets，按（非）终态集进行切分

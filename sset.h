@@ -33,6 +33,7 @@ public:
         for (auto &st : *this) {
             st.order();
         }
+        cout << endl;
     }
 };
 
