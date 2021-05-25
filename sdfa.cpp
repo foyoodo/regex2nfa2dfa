@@ -52,14 +52,14 @@ sset<sset<int>> &initsets(DFA &dfa) {
     sset<sset<int>> *sets = new sset<sset<int>>;
     sset<int> start, final(true);
     for (int &v : dfa.final) {
-        final.push_back(v);
+        final.insert(v);
     }
     for (int i = 0; i < dfa.states.size(); ++i) {
-        if (find(final.begin(), final.end(), i) == final.end()) {
-            start.push_back(i);
+        if (final.find(i) == final.end()) {
+            start.insert(i);
         }
     }
-    sets->push_back(std::move(start));
-    sets->push_back(std::move(final));
+    sets->insert(std::move(start));
+    sets->insert(std::move(final));
     return *sets;
 }

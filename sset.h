@@ -2,35 +2,35 @@
 #define __SSET_H__
 
 #include <iostream>
-#include <vector>
+#include <set>
 
 using namespace std;
 
 template <typename T>
-class sset : public vector<T> {
+class sset : public set<T> {
 public:
     sset(bool _final = false) : final(_final) {}
 
     bool final;
 
-    void order() {
+    void order() const {
         cout << (final ? "F" : "S") << ": {";
-        for (int i = 0; i < this->size(); ++i) {
-            if (i > 0) {
+        for (auto it = this->begin(); it != this->end(); ++it) {
+            if (it != this->begin()) {
                 cout << ", ";
             }
-            cout << (*this)[i];
+            cout << *it;
         }
         cout << "}" << endl;
     }
 };
 
 template <typename T>
-class sset<sset<T>> : public vector<sset<T>> {
+class sset<sset<T>> : public set<sset<T>> {
 public:
-    void order() {
-        for (auto &set : *this) {
-            set.order();
+    void order() const {
+        for (auto &st : *this) {
+            st.order();
         }
     }
 };
