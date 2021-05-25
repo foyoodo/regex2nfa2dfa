@@ -11,6 +11,7 @@ using namespace std;
 
 DFA &simplifydfa(DFA &dfa);
 sset<sset<int>> &initsets(DFA &dfa);
+bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w);
 bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
 
@@ -153,6 +154,23 @@ DFA &simplifydfa(DFA &dfa) {
     return *newdfa;
 }
 
+// 初始化 sets，按（非）终态集进行切分
+sset<sset<int>> &initsets(DFA &dfa) {
+    sset<sset<int>> *sets = new sset<sset<int>>;
+    sset<int> start, final(true);
+    for (int &v : dfa.final) {
+        final.insert(v);
+    }
+    for (int i = 0; i < dfa.states.size(); ++i) {
+        if (final.find(i) == final.end()) {
+            start.insert(i);
+        }
+    }
+    sets->push_back(std::move(start));
+    sets->push_back(std::move(final));
+    return *sets;
+}
+
 // 判断 t 和 s 是否可区分，true 代表可区分，false 代表不可区分
 bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w) {
     bool ret = false;
@@ -236,21 +254,4 @@ void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
             break;
         }
     }
-}
-
-// 初始化 sets，按（非）终态集进行切分
-sset<sset<int>> &initsets(DFA &dfa) {
-    sset<sset<int>> *sets = new sset<sset<int>>;
-    sset<int> start, final(true);
-    for (int &v : dfa.final) {
-        final.insert(v);
-    }
-    for (int i = 0; i < dfa.states.size(); ++i) {
-        if (final.find(i) == final.end()) {
-            start.insert(i);
-        }
-    }
-    sets->push_back(std::move(start));
-    sets->push_back(std::move(final));
-    return *sets;
 }
