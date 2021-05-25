@@ -15,6 +15,9 @@ bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
 
 int main(int argc, char const *argv[]) {
+
+    cout << "--------------------------" << endl;
+
     DFA dfa;
 
     vector<Move> moves;
@@ -36,6 +39,75 @@ int main(int argc, char const *argv[]) {
 
     simplifydfa(dfa);
 
+    cout << "--------------------------" << endl;
+
+    DFA dfa2;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'f');
+    moves.emplace_back(1, 2, 'e');
+    moves.emplace_back(1, 4, 'i');
+    moves.emplace_back(2, 3, 'e');
+    moves.emplace_back(4, 5, 'e');
+
+    dfa2.states = vector<vector<int>>(6);
+    dfa2.sum.insert('e');
+    dfa2.sum.insert('f');
+    dfa2.sum.insert('i');
+    dfa2.moves = std::move(moves);
+    dfa2.s0 = 0;
+    dfa2.final = {3, 5};
+
+    simplifydfa(dfa2);
+
+    cout << "--------------------------" << endl;
+
+    DFA dfa3;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'a');
+    moves.emplace_back(0, 2, 'b');
+    moves.emplace_back(2, 3, 'a');
+    moves.emplace_back(2, 4, 'b');
+    moves.emplace_back(3, 3, 'a');
+    moves.emplace_back(3, 4, 'b');
+    moves.emplace_back(4, 3, 'a');
+    moves.emplace_back(4, 4, 'b');
+
+    dfa3.states = vector<vector<int>>(5);
+    dfa3.sum.insert('a');
+    dfa3.sum.insert('b');
+    dfa3.moves = std::move(moves);
+    dfa3.s0 = 0;
+    dfa3.final = {1, 2, 3, 4};
+
+    simplifydfa(dfa3);
+
+    cout << "--------------------------" << endl;
+
+    DFA dfa4;
+
+    moves.clear();
+    moves.emplace_back(0, 1, 'a');
+    moves.emplace_back(0, 2, 'b');
+    moves.emplace_back(1, 1, 'a');
+    moves.emplace_back(1, 3, 'b');
+    moves.emplace_back(2, 1, 'a');
+    moves.emplace_back(2, 2, 'b');
+    moves.emplace_back(3, 1, 'a');
+    moves.emplace_back(3, 4, 'b');
+    moves.emplace_back(4, 1, 'a');
+    moves.emplace_back(4, 2, 'b');
+
+    dfa4.states = vector<vector<int>>(5);
+    dfa4.sum.insert('a');
+    dfa4.sum.insert('b');
+    dfa4.moves = std::move(moves);
+    dfa4.s0 = 0;
+    dfa4.final = {4};
+
+    simplifydfa(dfa4);
+
     return 0;
 }
 
@@ -51,6 +123,7 @@ DFA &simplifydfa(DFA &dfa) {
 
     deep = 0;
     split(graph, dfa.sum, sets);
+    sets.order();
 
     return *newdfa;
 }
@@ -72,10 +145,15 @@ bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w) {
                 break;
             }
         }
-        if (ft != fs) {
+        if (ft == -1 && ft == fs) {
+            ret = false;
+        } else if (ft == -1 || fs == -1) {
+            ret = true;
+        } else if (ft != fs) {
+            ret = true;
             for (auto &st : sets) {
                 if ((st.find(ft) != st.end()) && (st.find(fs) != st.end())) {
-                    ret = true;
+                    ret = false;
                     break;
                 }
             }
@@ -99,32 +177,36 @@ bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k) {
             }
             for (char w : sum) {
                 if (check(graph, sets, first, *it, w)) {
-                    st0.insert(*it);
-                } else {
                     st1.insert(*it);
                 }
             }
         }
-        if (st0.size() == st.size()) {
+        for (auto it = st.begin(); it != st.end(); ++it) {
+            if (it == st.begin()) {
+                continue;
+            }
+            if (st1.find(*it) == st1.end()) {
+                st0.insert(*it);
+            }
+        }
+        if (st1.empty()) {
             ret = false;
         } else {
-            auto it = sets.begin() + k;
-            sets.erase(it);
-            sets.insert(it, std::move(st1));
-            sets.insert(it, std::move(st0));
+            sets.erase(sets.begin() + k);
+            sets.insert(sets.begin() + k, std::move(st1));
+            sets.insert(sets.begin() + k, std::move(st0));
         }
     }
     return ret;
 }
 
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
-    if (++deep > 5) {
+    if (++deep > 10) {
         return;
     }
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
         if (split(graph, sum, sets, i)) {
-            sets.order();
             split(graph, sum, sets);
             break;
         }
