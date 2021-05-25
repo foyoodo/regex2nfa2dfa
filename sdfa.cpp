@@ -43,6 +43,7 @@ DFA &simplifydfa(DFA &dfa) {
     buildngraph(graph, dfa.moves);
 
     sset<sset<int>> sets = initsets(dfa);
+    // sets.order();
 
     return *newdfa;
 }
@@ -59,7 +60,7 @@ sset<sset<int>> &initsets(DFA &dfa) {
             start.insert(i);
         }
     }
-    sets->insert(std::move(start));
-    sets->insert(std::move(final));
+    sets->push_back(std::move(start));
+    sets->push_back(std::move(final));
     return *sets;
 }

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <set>
+#include <vector>
 
 using namespace std;
 
@@ -26,7 +27,7 @@ public:
 };
 
 template <typename T>
-class sset<sset<T>> : public set<sset<T>> {
+class sset<sset<T>> : public vector<sset<T>> {
 public:
     void order() const {
         for (auto &st : *this) {
