@@ -134,6 +134,8 @@ int main(int argc, char const *argv[]) {
 
     simplifydfa(dfa5);
 
+    cout << "--------------------------" << endl;
+
     return 0;
 }
 
