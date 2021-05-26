@@ -1,21 +1,19 @@
 #ifndef __ARCNODE_H_
 #define __ARCNODE_H_
 
-#include <vector>
+#include <set>
 
 using namespace std;
 
 struct ArcNode {
     union {
         char val;
-        vector<char> *vals;
+        set<char> *vals;
     };
     int adjvex;
 
     ArcNode(char _val, int _adjvex) : val(_val), adjvex(_adjvex) {}
-    ArcNode(vector<char> *_vals, int _adjvex) : adjvex(_adjvex) {
-        vals = new vector<char>(*_vals);
-    }
+    ArcNode(set<char> *_vals, int _adjvex) : vals(_vals), adjvex(_adjvex) {}
 };
 
 #endif

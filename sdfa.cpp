@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <iostream>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "algraph.h"
 #include "dfa.h"
@@ -14,6 +16,7 @@ sset<sset<int>> &initsets(DFA &dfa);
 bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w);
 bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
+ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets);
 
 int main(int argc, char const *argv[]) {
 
@@ -59,7 +62,7 @@ int main(int argc, char const *argv[]) {
     dfa2.s0 = 0;
     dfa2.final = {3, 5};
 
-    simplifydfa(dfa2);
+    // simplifydfa(dfa2);
 
     cout << "--------------------------" << endl;
 
@@ -84,7 +87,7 @@ int main(int argc, char const *argv[]) {
     dfa3.s0 = 0;
     dfa3.final = {3, 4};
 
-    simplifydfa(dfa3);
+    // simplifydfa(dfa3);
 
     cout << "--------------------------" << endl;
 
@@ -109,7 +112,7 @@ int main(int argc, char const *argv[]) {
     dfa4.s0 = 0;
     dfa4.final = {4};
 
-    simplifydfa(dfa4);
+    // simplifydfa(dfa4);
 
     cout << "--------------------------" << endl;
 
@@ -132,7 +135,7 @@ int main(int argc, char const *argv[]) {
     dfa5.s0 = 0;
     dfa5.final = {1, 2, 3, 4};
 
-    simplifydfa(dfa5);
+    // simplifydfa(dfa5);
 
     return 0;
 }
@@ -150,6 +153,9 @@ DFA &simplifydfa(DFA &dfa) {
     deep = 0;
     split(graph, dfa.sum, sets);
     sets.order();
+
+    ALGraph newgraph = rebuilddgraph(graph, sets);
+    orderdgraph(newgraph);
 
     return *newdfa;
 }
@@ -254,4 +260,45 @@ void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
             break;
         }
     }
+}
+
+int indexofsi(sset<sset<int>> &sets, int si) {
+    for (int i = 0; i < sets.size(); ++i) {
+        sset<int> &st = sets[i];
+        if (st.find(si) != st.end()) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets) {
+    ALGraph *newgraph = new ALGraph();
+
+    for (int i = 0; i < sets.size(); ++i) {
+        sset<int> &st = sets[i];
+        unordered_map<int, unordered_set<int>> mp;
+        for (int si : st) {
+            for (ArcNode &node : graph[si]) {
+                int sj = indexofsi(sets, node.adjvex);
+                cout << ">>> " << sj << endl;
+                cout << i << " -> " << sj << " : " << node.val << endl;
+                if (mp.find(i) == mp.end()) {
+                    newarc(*newgraph, i, sj, new set<char>{node.val});
+                    mp[i] = unordered_set<int>{sj};
+                } else {
+                    if (mp[i].find(sj) == mp[i].end()) {
+                        (*newgraph)[i][sj].vals->insert(node.val);
+                        // newarc(*newgraph, i, sj, new set<char>{node.val});
+                        mp[i].insert(sj);
+                    } else {
+                        // (*newgraph)[i][sj].vals->insert(node.val);
+                        // mp[i].insert(sj);
+                    }
+                }
+            }
+        }
+    }
+
+    return *newgraph;
 }

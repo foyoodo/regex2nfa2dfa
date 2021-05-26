@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <set>
 
 #include "arcnode.h"
 #include "move.h"
@@ -26,7 +27,7 @@ void newarc(ALGraph &graph, int l, int r, char c) {
     graph[l].emplace_back(c, r);
 }
 
-void newarc(ALGraph &graph, int l, int r, vector<char> *chs) {
+void newarc(ALGraph &graph, int l, int r, set<char> *chs) {
     increase(graph, max(l, r));
     graph[l].emplace_back(chs, r);
 }
@@ -58,11 +59,11 @@ void orderdgraph(ALGraph &graph) {
         printf("%d", i);
         for (ArcNode &node : graph[i]) {
             printf(" -> ([");
-            for (int j = 0; j < node.vals->size(); ++j) {
-                if (j > 0) {
+            for (auto it = node.vals->begin(); it != node.vals->end(); ++it) {
+                if (it != node.vals->begin()) {
                     printf(", ");
                 }
-                printf("%c", (*node.vals)[j]);
+                printf("%c", *it);
             }
             printf("], %d)", node.adjvex);
         }
@@ -74,7 +75,7 @@ int targetdgraph(ALGraph &graph, int si, char ch) {
     int sj = -1;
     if (si < graph.size()) {
         for (ArcNode &arc : graph[si]) {
-            vector<char>::iterator it = find(arc.vals->begin(), arc.vals->end(), ch);
+            set<char>::iterator it = arc.vals->find(ch);
             if (it != arc.vals->end()) {
                 sj = arc.adjvex;
                 break;
