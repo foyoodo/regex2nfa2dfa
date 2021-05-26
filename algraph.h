@@ -32,6 +32,22 @@ void newarc(ALGraph &graph, int l, int r, set<char> *chs) {
     graph[l].emplace_back(chs, r);
 }
 
+void addarc(ALGraph &graph, int l, int r, char c) {
+    increase(graph, max(l, r));
+    int index = -1;
+    for (int i = 0; i < graph[l].size(); ++i) {
+        if (graph[l][i].adjvex == r) {
+            index = i;
+            break;
+        }
+    }
+    if (index < 0) {
+        newarc(graph, l, r, new set<char>{c});
+    } else {
+        graph[l][index].vals->insert(c);
+    }
+}
+
 void buildngraph(ALGraph &graph, vector<Move> &moves) {
     for (Move m : moves) {
         newarc(graph, m.si, m.sj, m.ch);

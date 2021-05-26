@@ -1,8 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <set>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "algraph.h"
 #include "dfa.h"
@@ -62,7 +59,7 @@ int main(int argc, char const *argv[]) {
     dfa2.s0 = 0;
     dfa2.final = {3, 5};
 
-    // simplifydfa(dfa2);
+    simplifydfa(dfa2);
 
     cout << "--------------------------" << endl;
 
@@ -87,7 +84,7 @@ int main(int argc, char const *argv[]) {
     dfa3.s0 = 0;
     dfa3.final = {3, 4};
 
-    // simplifydfa(dfa3);
+    simplifydfa(dfa3);
 
     cout << "--------------------------" << endl;
 
@@ -112,7 +109,7 @@ int main(int argc, char const *argv[]) {
     dfa4.s0 = 0;
     dfa4.final = {4};
 
-    // simplifydfa(dfa4);
+    simplifydfa(dfa4);
 
     cout << "--------------------------" << endl;
 
@@ -135,7 +132,7 @@ int main(int argc, char const *argv[]) {
     dfa5.s0 = 0;
     dfa5.final = {1, 2, 3, 4};
 
-    // simplifydfa(dfa5);
+    simplifydfa(dfa5);
 
     return 0;
 }
@@ -262,7 +259,7 @@ void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
     }
 }
 
-int indexofsi(sset<sset<int>> &sets, int si) {
+int indexinsets(sset<sset<int>> &sets, int si) {
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
         if (st.find(si) != st.end()) {
@@ -277,25 +274,9 @@ ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets) {
 
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
-        unordered_map<int, unordered_set<int>> mp;
         for (int si : st) {
             for (ArcNode &node : graph[si]) {
-                int sj = indexofsi(sets, node.adjvex);
-                cout << ">>> " << sj << endl;
-                cout << i << " -> " << sj << " : " << node.val << endl;
-                if (mp.find(i) == mp.end()) {
-                    newarc(*newgraph, i, sj, new set<char>{node.val});
-                    mp[i] = unordered_set<int>{sj};
-                } else {
-                    if (mp[i].find(sj) == mp[i].end()) {
-                        (*newgraph)[i][sj].vals->insert(node.val);
-                        // newarc(*newgraph, i, sj, new set<char>{node.val});
-                        mp[i].insert(sj);
-                    } else {
-                        // (*newgraph)[i][sj].vals->insert(node.val);
-                        // mp[i].insert(sj);
-                    }
-                }
+                addarc(*newgraph, i, indexinsets(sets, node.adjvex), node.val);
             }
         }
     }
