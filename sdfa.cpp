@@ -38,7 +38,8 @@ int main(int argc, char const *argv[]) {
     dfa.s0 = 0;
     dfa.final = {1, 2, 3};
 
-    simplifydfa(dfa);
+    DFA newdfa = simplifydfa(dfa);
+    newdfa.order();
 
     cout << "--------------------------" << endl;
 
@@ -59,7 +60,8 @@ int main(int argc, char const *argv[]) {
     dfa2.s0 = 0;
     dfa2.final = {3, 5};
 
-    simplifydfa(dfa2);
+    DFA newdfa2 = simplifydfa(dfa2);
+    newdfa2.order();
 
     cout << "--------------------------" << endl;
 
@@ -84,7 +86,8 @@ int main(int argc, char const *argv[]) {
     dfa3.s0 = 0;
     dfa3.final = {3, 4};
 
-    simplifydfa(dfa3);
+    DFA newdfa3 = simplifydfa(dfa3);
+    newdfa3.order();
 
     cout << "--------------------------" << endl;
 
@@ -109,7 +112,8 @@ int main(int argc, char const *argv[]) {
     dfa4.s0 = 0;
     dfa4.final = {4};
 
-    simplifydfa(dfa4);
+    DFA newdfa4 = simplifydfa(dfa4);
+    newdfa4.order();
 
     cout << "--------------------------" << endl;
 
@@ -132,7 +136,8 @@ int main(int argc, char const *argv[]) {
     dfa5.s0 = 0;
     dfa5.final = {1, 2, 3, 4};
 
-    simplifydfa(dfa5);
+    DFA newdfa5 = simplifydfa(dfa5);
+    newdfa5.order();
 
     cout << "--------------------------" << endl;
 
@@ -154,7 +159,27 @@ DFA &simplifydfa(DFA &dfa) {
     sets.order();
 
     ALGraph newgraph = rebuilddgraph(graph, sets);
-    orderdgraph(newgraph);
+
+    for (int i = 0; i < sets.size(); ++i) {
+        auto &st = sets[i];
+        vector<int> state;
+        for (int v : st) {
+            state.push_back(v);
+        }
+        if (st.final) {
+            newdfa->final.push_back(i);
+        }
+        newdfa->states.push_back(std::move(state));
+    }
+
+    for (int i = 0; i < newgraph.size(); ++i) {
+        for (ArcNode &node : newgraph[i]) {
+            newdfa->moves.emplace_back(i, node.adjvex, node.vals);
+        }
+    }
+
+    newdfa->sum = dfa.sum;
+    newdfa->s0 = 0;
 
     return *newdfa;
 }
