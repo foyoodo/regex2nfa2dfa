@@ -11,13 +11,13 @@
 using namespace std;
 
 unordered_set<char> symbols;
-DFA dfa;
-DFA dfa2;
+DFA dfa, dfa2;
+ALGraph graph, graph2;
 
 int nexttoken(string &s, int k);
 
 void initdata() {
-    // DFA data set
+    // a(b|c)*
     vector<Move> moves;
     moves.emplace_back(0, 1, new set<char>{'a'});
     moves.emplace_back(1, 1, new set<char>{'b', 'c'});
@@ -30,6 +30,9 @@ void initdata() {
     dfa.s0 = 0;
     dfa.final = {1};
 
+    builddgraph(graph, dfa.moves);
+
+    // f(ee|ie)
     moves.clear();
     moves.emplace_back(0, 1, new set<char>{'f'});
     moves.emplace_back(1, 2, new set<char>{'e', 'i'});
@@ -42,6 +45,8 @@ void initdata() {
     dfa2.moves = std::move(moves);
     dfa2.s0 = 0;
     dfa2.final = {3};
+
+    builddgraph(graph2, dfa2.moves);
 
     // Sets data set
     ifstream symbolsin("symbols.txt");
@@ -79,10 +84,6 @@ bool acceptfinal(DFA &dfa, int state) {
 }
 
 int nexttoken(string &s, int k) {
-    ALGraph graph, graph2;
-    builddgraph(graph, dfa.moves);
-    builddgraph(graph2, dfa2.moves);
-
     int state = 0;
     stack<int> stk;
 
