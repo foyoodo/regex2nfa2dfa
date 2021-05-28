@@ -117,6 +117,10 @@ int nexttoken(string &s, int k) {
         cout << "Right : " << s.substr(beg, k - beg) << endl;
         return k;
     } else {
+        if (k + 1 < s.size() && symbols.find(s[k + 1]) != symbols.end()) {
+            cout << "Wrong : " << s.substr(beg, k - beg + 1) << endl;
+            return k + 1;
+        }
         cout << "Wrong : " << s.substr(beg, s.size() - beg) << endl;
         return -1;
     }
