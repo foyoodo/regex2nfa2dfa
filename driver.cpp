@@ -12,9 +12,9 @@ using namespace std;
 
 static unordered_set<char> symbols;
 static DFA type1, type2;
-static ALGraph graph, graph2;
+static ALGraph graph1, graph2;
 
-int nexttoken(DFA &dfa, string &s, int k);
+int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k);
 
 void initdata() {
     // a(b|c)*
@@ -30,7 +30,7 @@ void initdata() {
     type1.s0 = 0;
     type1.final = {1};
 
-    builddgraph(graph, type1.moves);
+    builddgraph(graph1, type1.moves);
 
     // f(ee|ie)
     moves.clear();
@@ -69,7 +69,13 @@ int main(int argc, char const *argv[]) {
         while (is >> s) {
             int k = 0;
             while (k < s.size() && k != -1) {
-                k = nexttoken(type1, s, k);
+                int oldk = k;
+                k = nexttoken(type1, graph1, s, k);
+                if (k == -1) {
+                    k = nexttoken(type2, graph2, s, oldk);
+                } else {
+                    k = nexttoken(type2, graph2, s, k);
+                }
             }
         }
         break;
@@ -93,7 +99,7 @@ string typeofdfa(DFA *dfa) {
     return "unknown";
 }
 
-int nexttoken(DFA &dfa, string &s, int k) {
+int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k) {
     int state = 0;
     stack<int> stk;
 
