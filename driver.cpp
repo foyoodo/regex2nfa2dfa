@@ -91,8 +91,8 @@ int nexttoken(string &s, int k) {
     for (int i = k; i < s.size() && state != -1; ++i, ++k) {
         char c = s[i];
         if (symbols.find(c) != symbols.end()) {
-            if (i == k) {
-                cout << "Single: " << c << endl;
+            if (i == beg) {
+                cout << "Symbol: " << c << endl;
                 return i + 1;
             } else {
                 break;
@@ -113,11 +113,11 @@ int nexttoken(string &s, int k) {
         --k;
     }
 
-    if (k == s.size() || (k + 1 < s.size() && symbols.find(s[k + 1]) != symbols.end())) {
+    if (k == s.size() || (k < s.size() && symbols.find(s[k]) != symbols.end())) {
         cout << "Right : " << s.substr(beg, k - beg) << endl;
-        return k + 1;
+        return k;
     } else {
-        cout << "Error : " << s.substr(beg, s.size() - beg) << endl;
+        cout << "Wrong : " << s.substr(beg, s.size() - beg) << endl;
         return -1;
     }
 }
