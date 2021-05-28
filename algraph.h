@@ -2,8 +2,8 @@
 #define __ALGRAPH_H__
 
 #include <algorithm>
-#include <vector>
 #include <set>
+#include <vector>
 
 #include "arcnode.h"
 #include "move.h"
