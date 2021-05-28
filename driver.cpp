@@ -10,11 +10,11 @@
 
 using namespace std;
 
-unordered_set<char> symbols;
-DFA dfa, dfa2;
-ALGraph graph, graph2;
+static unordered_set<char> symbols;
+static DFA type1, type2;
+static ALGraph graph, graph2;
 
-int nexttoken(string &s, int k);
+int nexttoken(DFA &dfa, string &s, int k);
 
 void initdata() {
     // a(b|c)*
@@ -22,15 +22,15 @@ void initdata() {
     moves.emplace_back(0, 1, new set<char>{'a'});
     moves.emplace_back(1, 1, new set<char>{'b', 'c'});
 
-    dfa.states = vector<vector<int>>(2);
-    dfa.sum.insert('a');
-    dfa.sum.insert('b');
-    dfa.sum.insert('c');
-    dfa.moves = std::move(moves);
-    dfa.s0 = 0;
-    dfa.final = {1};
+    type1.states = vector<vector<int>>(2);
+    type1.sum.insert('a');
+    type1.sum.insert('b');
+    type1.sum.insert('c');
+    type1.moves = std::move(moves);
+    type1.s0 = 0;
+    type1.final = {1};
 
-    builddgraph(graph, dfa.moves);
+    builddgraph(graph, type1.moves);
 
     // f(ee|ie)
     moves.clear();
@@ -38,15 +38,15 @@ void initdata() {
     moves.emplace_back(1, 2, new set<char>{'e', 'i'});
     moves.emplace_back(2, 3, new set<char>{'e'});
 
-    dfa2.states = vector<vector<int>>(4);
-    dfa2.sum.insert('e');
-    dfa2.sum.insert('f');
-    dfa2.sum.insert('i');
-    dfa2.moves = std::move(moves);
-    dfa2.s0 = 0;
-    dfa2.final = {3};
+    type2.states = vector<vector<int>>(4);
+    type2.sum.insert('e');
+    type2.sum.insert('f');
+    type2.sum.insert('i');
+    type2.moves = std::move(moves);
+    type2.s0 = 0;
+    type2.final = {3};
 
-    builddgraph(graph2, dfa2.moves);
+    builddgraph(graph2, type2.moves);
 
     // Sets data set
     ifstream symbolsin("symbols.txt");
@@ -69,7 +69,7 @@ int main(int argc, char const *argv[]) {
         while (is >> s) {
             int k = 0;
             while (k < s.size() && k != -1) {
-                k = nexttoken(s, k);
+                k = nexttoken(type1, s, k);
             }
         }
         break;
@@ -83,7 +83,17 @@ bool acceptfinal(DFA &dfa, int state) {
     return find(dfa.final.begin(), dfa.final.end(), state) != dfa.final.end();
 }
 
-int nexttoken(string &s, int k) {
+string typeofdfa(DFA *dfa) {
+    if (dfa == &type1) {
+        return "a(b|c)*";
+    }
+    if (dfa == &type2) {
+        return "f(ee|ie)";
+    }
+    return "unknown";
+}
+
+int nexttoken(DFA &dfa, string &s, int k) {
     int state = 0;
     stack<int> stk;
 
@@ -115,7 +125,7 @@ int nexttoken(string &s, int k) {
     }
 
     if (k == s.size() || (k < s.size() && symbols.find(s[k]) != symbols.end())) {
-        cout << "Right : " << s.substr(beg, k - beg) << endl;
+        cout << typeofdfa(&dfa) << " : " << s.substr(beg, k - beg) << endl;
         return k;
     } else {
         if (k + 1 < s.size() && symbols.find(s[k + 1]) != symbols.end()) {
