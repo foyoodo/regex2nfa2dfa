@@ -73,7 +73,7 @@ int main(int argc, char const *argv[]) {
                 k = nexttoken(type1, graph1, s, k);
                 if (k == -1) {
                     k = nexttoken(type2, graph2, s, oldk);
-                } else {
+                } else if (k < s.size()) {
                     k = nexttoken(type2, graph2, s, k);
                 }
             }
