@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unordered_set>
 #include <iostream>
 #include <sstream>
 #include <stack>
@@ -9,11 +10,14 @@
 
 using namespace std;
 
-bool nexttoken(DFA &dfa, string &s, int &k);
+unordered_set<char> symbols;
+DFA dfa;
+DFA dfa2;
 
-int main(int argc, char const *argv[]) {
-    DFA dfa;
+int nexttoken(string &s, int k);
 
+void initdata() {
+    // DFA data set
     vector<Move> moves;
     moves.emplace_back(0, 1, new set<char>{'a'});
     moves.emplace_back(1, 1, new set<char>{'b', 'c'});
@@ -26,6 +30,31 @@ int main(int argc, char const *argv[]) {
     dfa.s0 = 0;
     dfa.final = {1};
 
+    moves.clear();
+    moves.emplace_back(0, 1, new set<char>{'f'});
+    moves.emplace_back(1, 2, new set<char>{'e', 'i'});
+    moves.emplace_back(2, 3, new set<char>{'e'});
+
+    dfa2.states = vector<vector<int>>(4);
+    dfa2.sum.insert('e');
+    dfa2.sum.insert('f');
+    dfa2.sum.insert('i');
+    dfa2.moves = std::move(moves);
+    dfa2.s0 = 0;
+    dfa2.final = {3};
+
+    // Sets data set
+    ifstream symbolsin("symbols.txt");
+    char symbol;
+    while (symbolsin >> symbol) {
+        symbols.insert(symbol);
+    }
+    symbolsin.close();
+}
+
+int main(int argc, char const *argv[]) {
+    initdata();
+
     ifstream in("input.txt");
     string line, s;
 
@@ -34,11 +63,8 @@ int main(int argc, char const *argv[]) {
         cout << line << endl;
         while (is >> s) {
             int k = 0;
-            while (k < s.size()) {
-                int beg = k;
-                if (nexttoken(dfa, s, k)) {
-                    cout << s.substr(beg, k - beg) << endl;
-                }
+            while (k < s.size() && k != -1) {
+                k = nexttoken(s, k);
             }
         }
         break;
@@ -52,20 +78,26 @@ bool acceptfinal(DFA &dfa, int state) {
     return find(dfa.final.begin(), dfa.final.end(), state) != dfa.final.end();
 }
 
-bool nexttoken(DFA &dfa, string &s, int &k) {
-    ALGraph graph;
+int nexttoken(string &s, int k) {
+    ALGraph graph, graph2;
     builddgraph(graph, dfa.moves);
-
-    int oldk = k;
+    builddgraph(graph2, dfa2.moves);
 
     int state = 0;
     stack<int> stk;
 
-    do {
-        if (k >= s.size()) {
-            break;
+    int beg = k;
+
+    for (int i = k; i < s.size() && state != -1; ++i, ++k) {
+        char c = s[i];
+        if (symbols.find(c) != symbols.end()) {
+            if (i == k) {
+                cout << "Single: " << c << endl;
+                return i + 1;
+            } else {
+                break;
+            }
         }
-        char c = s[k++];
         if (acceptfinal(dfa, state)) {
             while (!stk.empty()) {
                 stk.pop();
@@ -73,7 +105,7 @@ bool nexttoken(DFA &dfa, string &s, int &k) {
         }
         stk.push(state);
         state = targetdgraph(graph, state, c);
-    } while (state != -1);
+    }
 
     while (!stk.empty() && !acceptfinal(dfa, state)) {
         state = stk.top();
@@ -81,9 +113,11 @@ bool nexttoken(DFA &dfa, string &s, int &k) {
         --k;
     }
 
-    if (oldk == k) {
-        ++k;
-        return false;
+    if (k == s.size() || (k + 1 < s.size() && symbols.find(s[k + 1]) != symbols.end())) {
+        cout << "Right : " << s.substr(beg, k - beg) << endl;
+        return k + 1;
+    } else {
+        cout << "Error : " << s.substr(beg, s.size() - beg) << endl;
+        return -1;
     }
-    return true;
 }
