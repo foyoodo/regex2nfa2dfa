@@ -17,35 +17,7 @@ static ALGraph graph1, graph2;
 int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k);
 
 void initdata() {
-    // a(b|c)*
-    vector<Move> moves;
-    moves.emplace_back(0, 1, new set<char>{'a'});
-    moves.emplace_back(1, 1, new set<char>{'b', 'c'});
-
-    type1.states = vector<vector<int>>(2);
-    type1.sum.insert('a');
-    type1.sum.insert('b');
-    type1.sum.insert('c');
-    type1.moves = std::move(moves);
-    type1.s0 = 0;
-    type1.final = {1};
-
     builddgraph(graph1, type1.moves);
-
-    // f(ee|ie)
-    moves.clear();
-    moves.emplace_back(0, 1, new set<char>{'f'});
-    moves.emplace_back(1, 2, new set<char>{'e', 'i'});
-    moves.emplace_back(2, 3, new set<char>{'e'});
-
-    type2.states = vector<vector<int>>(4);
-    type2.sum.insert('e');
-    type2.sum.insert('f');
-    type2.sum.insert('i');
-    type2.moves = std::move(moves);
-    type2.s0 = 0;
-    type2.final = {3};
-
     builddgraph(graph2, type2.moves);
 
     // Sets data set
@@ -57,7 +29,20 @@ void initdata() {
     symbolsin.close();
 }
 
-int main(int argc, char const *argv[]) {
+void handlestr(string s) {
+    int k = 0;
+    while (k < s.size() && k != -1) {
+        int oldk = k;
+        k = nexttoken(type1, graph1, s, k);
+        if (k == -1) {
+            k = nexttoken(type2, graph2, s, oldk);
+        } else if (k < s.size()) {
+            k = nexttoken(type2, graph2, s, k);
+        }
+    }
+}
+
+void driver_start() {
     initdata();
 
     ifstream in("input.txt");
@@ -67,22 +52,12 @@ int main(int argc, char const *argv[]) {
         istringstream is(line);
         cout << line << endl;
         while (is >> s) {
-            int k = 0;
-            while (k < s.size() && k != -1) {
-                int oldk = k;
-                k = nexttoken(type1, graph1, s, k);
-                if (k == -1) {
-                    k = nexttoken(type2, graph2, s, oldk);
-                } else if (k < s.size()) {
-                    k = nexttoken(type2, graph2, s, k);
-                }
-            }
+            handlestr(s);
         }
         break;
     }
 
     in.close();
-    return 0;
 }
 
 bool acceptfinal(DFA &dfa, int state) {
@@ -91,10 +66,10 @@ bool acceptfinal(DFA &dfa, int state) {
 
 string typeofdfa(DFA *dfa) {
     if (dfa == &type1) {
-        return "a(b|c)*";
+        return "Number";
     }
     if (dfa == &type2) {
-        return "f(ee|ie)";
+        return "Variable";
     }
     return "unknown";
 }

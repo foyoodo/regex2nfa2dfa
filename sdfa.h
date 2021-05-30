@@ -30,7 +30,6 @@ DFA &simplifydfa(DFA &dfa) {
 
     deep = 0;
     split(graph, dfa.sum, sets);
-    sets.order();
 
     ALGraph newgraph = rebuilddgraph(graph, sets);
 
