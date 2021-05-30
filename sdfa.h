@@ -1,3 +1,6 @@
+#ifndef __SDFA_H__
+#define __SDFA_H__
+
 #include <algorithm>
 #include <iostream>
 
@@ -14,135 +17,6 @@ bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w);
 bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
 ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets);
-
-int main(int argc, char const *argv[]) {
-
-    cout << "--------------------------" << endl;
-
-    DFA dfa;
-
-    vector<Move> moves;
-    moves.emplace_back(0, 1, 'a');
-    moves.emplace_back(1, 2, 'b');
-    moves.emplace_back(1, 3, 'c');
-    moves.emplace_back(2, 2, 'b');
-    moves.emplace_back(2, 3, 'c');
-    moves.emplace_back(3, 2, 'b');
-    moves.emplace_back(3, 3, 'c');
-
-    dfa.states = vector<vector<int>>(4);
-    dfa.sum.insert('a');
-    dfa.sum.insert('b');
-    dfa.sum.insert('c');
-    dfa.moves = std::move(moves);
-    dfa.s0 = 0;
-    dfa.final = {1, 2, 3};
-
-    DFA newdfa = simplifydfa(dfa);
-    newdfa.order();
-
-    cout << "--------------------------" << endl;
-
-    DFA dfa2;
-
-    moves.clear();
-    moves.emplace_back(0, 1, 'f');
-    moves.emplace_back(1, 2, 'e');
-    moves.emplace_back(1, 4, 'i');
-    moves.emplace_back(2, 3, 'e');
-    moves.emplace_back(4, 5, 'e');
-
-    dfa2.states = vector<vector<int>>(6);
-    dfa2.sum.insert('e');
-    dfa2.sum.insert('f');
-    dfa2.sum.insert('i');
-    dfa2.moves = std::move(moves);
-    dfa2.s0 = 0;
-    dfa2.final = {3, 5};
-
-    DFA newdfa2 = simplifydfa(dfa2);
-    newdfa2.order();
-
-    cout << "--------------------------" << endl;
-
-    DFA dfa3;
-
-    moves.clear();
-    moves.emplace_back(0, 1, 'a');
-    moves.emplace_back(0, 2, 'b');
-    moves.emplace_back(1, 3, 'a');
-    moves.emplace_back(1, 4, 'b');
-    moves.emplace_back(2, 1, 'a');
-    moves.emplace_back(2, 2, 'b');
-    moves.emplace_back(3, 3, 'a');
-    moves.emplace_back(3, 4, 'b');
-    moves.emplace_back(4, 1, 'a');
-    moves.emplace_back(4, 2, 'b');
-
-    dfa3.states = vector<vector<int>>(5);
-    dfa3.sum.insert('a');
-    dfa3.sum.insert('b');
-    dfa3.moves = std::move(moves);
-    dfa3.s0 = 0;
-    dfa3.final = {3, 4};
-
-    DFA newdfa3 = simplifydfa(dfa3);
-    newdfa3.order();
-
-    cout << "--------------------------" << endl;
-
-    DFA dfa4;
-
-    moves.clear();
-    moves.emplace_back(0, 1, 'a');
-    moves.emplace_back(0, 2, 'b');
-    moves.emplace_back(1, 1, 'a');
-    moves.emplace_back(1, 3, 'b');
-    moves.emplace_back(2, 1, 'a');
-    moves.emplace_back(2, 2, 'b');
-    moves.emplace_back(3, 1, 'a');
-    moves.emplace_back(3, 4, 'b');
-    moves.emplace_back(4, 1, 'a');
-    moves.emplace_back(4, 2, 'b');
-
-    dfa4.states = vector<vector<int>>(5);
-    dfa4.sum.insert('a');
-    dfa4.sum.insert('b');
-    dfa4.moves = std::move(moves);
-    dfa4.s0 = 0;
-    dfa4.final = {4};
-
-    DFA newdfa4 = simplifydfa(dfa4);
-    newdfa4.order();
-
-    cout << "--------------------------" << endl;
-
-    DFA dfa5;
-
-    moves.clear();
-    moves.emplace_back(0, 1, 'a');
-    moves.emplace_back(0, 2, 'b');
-    moves.emplace_back(2, 3, 'a');
-    moves.emplace_back(2, 4, 'b');
-    moves.emplace_back(3, 3, 'a');
-    moves.emplace_back(3, 4, 'b');
-    moves.emplace_back(4, 3, 'a');
-    moves.emplace_back(4, 4, 'b');
-
-    dfa5.states = vector<vector<int>>(5);
-    dfa5.sum.insert('a');
-    dfa5.sum.insert('b');
-    dfa5.moves = std::move(moves);
-    dfa5.s0 = 0;
-    dfa5.final = {1, 2, 3, 4};
-
-    DFA newdfa5 = simplifydfa(dfa5);
-    newdfa5.order();
-
-    cout << "--------------------------" << endl;
-
-    return 0;
-}
 
 static int deep;
 
@@ -310,3 +184,5 @@ ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets) {
 
     return *newgraph;
 }
+
+#endif
