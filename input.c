@@ -3,8 +3,9 @@ void test(int a, int b, float c, float d) {
     float y;
     x = a + b;
     y = c / d;
-    if (x > y)
+    if (x >= y) {
         x = 10;
-    else
+    } else {
         y = 12.5;
+    }
 }

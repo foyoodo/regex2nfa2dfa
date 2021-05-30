@@ -132,15 +132,24 @@ void bracketOperation(string &re, int &rightIndex) {
     }
     pair<char, int> leftBracket = label.top();
     label.pop();
-    // 运算结束后 只要左括号前不是或运算和另一个左括号、右括号之后不是闭包
-    // 那就需要和前面的 NFA 做与运算
-    if (leftBracket.second > 0 && re[leftBracket.second - 1] != '(' &&
-        re[leftBracket.second - 1] != '|') {
-        if ((rightIndex + 1 < re.length() && re[rightIndex + 1] == '*')) {
-            rightIndex++;
+    // 后面是闭包 提前计算
+    if (rightIndex + 1 < re.size()) {
+        //后面字符是否是闭包
+        bool flag = false;
+        if (re[rightIndex + 1] == '*') {
             closureOperation();
+            flag = true;
         }
-        andOperation();
+        if (flag) rightIndex++;
+    }
+    // 判断运算符栈顶元素位置是否在当前字符前面 如果不在
+    // 说明运算符和当前字符之间还有别的字符 需要做与运算
+    // 如果当前字符经过转译，则判断算符栈顶元素位置是否和转译字符前一个位置相同
+    if (label.empty()) {
+        if (!oper.empty()) andOperation();
+    } else {
+        pair<char, int> o = label.top();
+        if (o.second != leftBracket.second - 1) andOperation();
     }
 }
 
@@ -171,8 +180,7 @@ void handleRe(string re) {
             label.push(pair<char, int>(c, i));
         } else if (c == ')') {
             bracketOperation(re, i);
-        }
-        else {
+        } else {
             if (c == '\\') {
                 if (i < re.size())
                     c = re[++i];
@@ -182,19 +190,26 @@ void handleRe(string re) {
             nfa.inputChars.insert(c);
             createState(c);
             if (re.size() == 1 || i == 0) continue;
-            // 后面是闭包或者正闭包，提前计算
+            //后面是闭包或者正闭包 提前计算
             if (i + 1 < re.size()) {
+                //后面字符是否是闭包
                 bool flag = false;
                 if (re[i + 1] == '*') {
                     closureOperation();
                     flag = true;
                 }
-                if (re[i - 1] != '|' && re[i - 1] != '(') {
-                    andOperation();
-                }
                 if (flag) i++;
-            } else if (re[i - 1] != '|') {
-                andOperation();
+            }
+            // 判断运算符栈顶元素位置是否在当前字符前面 如果不在
+            // 说明运算符和当前字符之间还有别的字符 需要做与运算
+            // 如果当前字符经过转译，则判断算符栈顶元素位置是否和转译字符前一个位置相同
+            if (label.empty()) {
+                if (!oper.empty()) andOperation();
+            } else {
+                pair<char, int> o = label.top();
+                if (re[i - 1] == '\\') {
+                    if (o.second != i - 2) andOperation();
+                } else if (o.second != i - 1) andOperation();
             }
         }
     }
@@ -387,6 +402,8 @@ void buildDFA(DFA &dfa) {
 }
 
 void nfadfa(string re) {
+    dfa = DFA();
+
     handleRe(re);
 
     nfa.state = n - 1;
@@ -423,22 +440,31 @@ void nfadfa(string re) {
     nfa = NFA();
 }
 
-extern DFA type1, type2;
+extern DFA type1, type2, type3, type4, type5;
 
 int main() {
     string number_re = "(+|-|@)(0|1|2|3|4|5|6|7|8|9)(0|1|2|3|4|5|6|7|8|9)*(@|.(0|1|2|3|4|5|6|7|8|9)(0|1|2|3|4|5|6|7|8|9)*)(@|E(+|-|@)(0|1|2|3|4|5|6|7|8|9)(0|1|2|3|4|5|6|7|8|9)*)";
     string variable_re = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|_|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|_|$|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|(0|1|2|3|4|5|6|7|8|9)(0|1|2|3|4|5|6|7|8|9)*)*";
+    string relation_re = "<|<=|>|>=|==|!=";
+    string keysymbol_re = "+|-|=|\\*|/|\\(|\\)|[|]|{|}|,|;|.|?|'|\"|:|\\||\\|\\||&|&&|->|%|>>|<<|^";
+    string keyword_re = "void|if|int|float|short|long|double|bool|else|static|public|private|protected|cin|cout|main";
 
     nfadfa(number_re);
     type1 = simplifydfa(dfa);
-    dfa = DFA();
 
-    nfadfa(variable_re);
+    nfadfa(relation_re);
     type2 = simplifydfa(dfa);
 
-    initdata();
-    handlestr("+1234.129898");
-    handlestr("absa$d");
+    nfadfa(keysymbol_re);
+    type3 = simplifydfa(dfa);
+
+    nfadfa(keyword_re);
+    type4 = simplifydfa(dfa);
+
+    nfadfa(variable_re);
+    type5 = simplifydfa(dfa);
+
+    startdriver();
 
     return 0;
 }

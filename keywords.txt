@@ -1,0 +1,1 @@
+bool char static void public private protected cin cout main short int long float double if else while for do switch case return

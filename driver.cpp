@@ -1,5 +1,4 @@
 #include <fstream>
-#include <unordered_set>
 #include <iostream>
 #include <sstream>
 #include <stack>
@@ -7,89 +6,52 @@
 
 #include "algraph.h"
 #include "dfa.h"
+#include "Exception.h"
 
 using namespace std;
 
-static unordered_set<char> symbols;
-static DFA type1, type2;
-static ALGraph graph1, graph2;
+static DFA type1, type2, type3, type4, type5;
+static ALGraph graph1, graph2, graph3, graph4, graph5;
+static int ln;
 
-int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k);
+void nexttoken(DFA &dfa, ALGraph &graph, string &s, int &k);
+string typeofdfa(DFA *dfa);
 
 void initdata() {
     builddgraph(graph1, type1.moves);
     builddgraph(graph2, type2.moves);
-
-    // Sets data set
-    ifstream symbolsin("symbols.txt");
-    char symbol;
-    while (symbolsin >> symbol) {
-        symbols.insert(symbol);
-    }
-    symbolsin.close();
+    builddgraph(graph3, type3.moves);
+    builddgraph(graph4, type4.moves);
+    builddgraph(graph5, type5.moves);
 }
 
 void handlestr(string s) {
     int k = 0;
-    while (k < s.size() && k != -1) {
+    while (k < s.size()) {
         int oldk = k;
-        k = nexttoken(type1, graph1, s, k);
-        if (k == -1) {
-            k = nexttoken(type2, graph2, s, oldk);
-        } else if (k < s.size()) {
-            k = nexttoken(type2, graph2, s, k);
+        nexttoken(type1, graph1, s, k);
+        nexttoken(type2, graph2, s, k);
+        nexttoken(type3, graph3, s, k);
+        nexttoken(type4, graph4, s, k);
+        nexttoken(type5, graph5, s, k);
+        if (k == oldk) {
+            throw Exception(s.substr(k, s.size() - k), ln);
+            break;
         }
     }
-}
-
-void driver_start() {
-    initdata();
-
-    ifstream in("input.txt");
-    string line, s;
-
-    while (getline(in, line)) {
-        istringstream is(line);
-        cout << line << endl;
-        while (is >> s) {
-            handlestr(s);
-        }
-        break;
-    }
-
-    in.close();
 }
 
 bool acceptfinal(DFA &dfa, int state) {
     return find(dfa.final.begin(), dfa.final.end(), state) != dfa.final.end();
 }
 
-string typeofdfa(DFA *dfa) {
-    if (dfa == &type1) {
-        return "Number";
-    }
-    if (dfa == &type2) {
-        return "Variable";
-    }
-    return "unknown";
-}
-
-int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k) {
+void nexttoken(DFA &dfa, ALGraph &graph, string &s, int &k) {
     int state = 0;
+    int oldk = k;
     stack<int> stk;
 
-    int beg = k;
-
-    for (int i = k; i < s.size() && state != -1; ++i, ++k) {
-        char c = s[i];
-        if (symbols.find(c) != symbols.end()) {
-            if (i == beg) {
-                cout << "Symbol: " << c << endl;
-                return i + 1;
-            } else {
-                break;
-            }
-        }
+    for (; k < s.size() && state != -1; ++k) {
+        char c = s[k];
         if (acceptfinal(dfa, state)) {
             while (!stk.empty()) {
                 stk.pop();
@@ -105,15 +67,51 @@ int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k) {
         --k;
     }
 
-    if (k == s.size() || (k < s.size() && symbols.find(s[k]) != symbols.end())) {
-        cout << typeofdfa(&dfa) << " : " << s.substr(beg, k - beg) << endl;
-        return k;
-    } else {
-        if (k + 1 < s.size() && symbols.find(s[k + 1]) != symbols.end()) {
-            cout << "Wrong : " << s.substr(beg, k - beg + 1) << endl;
-            return k + 1;
-        }
-        cout << "Wrong : " << s.substr(beg, s.size() - beg) << endl;
-        return -1;
+    if (k > oldk) {
+        cout << typeofdfa(&dfa) << ": " << s.substr(oldk, k - oldk) << endl;
     }
+}
+
+string typeofdfa(DFA *dfa) {
+    if (dfa == &type1) {
+        return "Number   ";
+    }
+    if (dfa == &type2) {
+        return "Relation ";
+    }
+    if (dfa == &type3) {
+        return "KeySymbol";
+    }
+    if (dfa == &type4) {
+        return "KeyWord  ";
+    }
+    if (dfa == &type5) {
+        return "Variable ";
+    }
+    return "Unknown  ";
+}
+
+void startdriver() {
+    initdata();
+
+    ifstream in("input.c");
+    string line, s;
+
+    ln = 1;
+    while (getline(in, line)) {
+        istringstream is(line);
+        while (is >> s) {
+            try {
+                handlestr(s);
+            } catch (Exception &e) {
+                e.showMessage();
+                exit(1);
+            } catch (...) {
+                cout << "uncaught unknown exception" << endl;
+            }
+        }
+        ++ln;
+    }
+
+    in.close();
 }

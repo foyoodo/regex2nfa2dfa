@@ -18,8 +18,6 @@ bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k);
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets);
 ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets);
 
-static int deep;
-
 DFA &simplifydfa(DFA &dfa) {
     DFA *newdfa = new DFA();
 
@@ -28,7 +26,6 @@ DFA &simplifydfa(DFA &dfa) {
 
     sset<sset<int>> sets = initsets(dfa);
 
-    deep = 0;
     split(graph, dfa.sum, sets);
 
     ALGraph newgraph = rebuilddgraph(graph, sets);
@@ -147,9 +144,6 @@ bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k) {
 }
 
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
-    if (++deep > 10) {
-        return;
-    }
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
         if (split(graph, sum, sets, i)) {
@@ -174,10 +168,9 @@ ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets) {
 
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
-        for (int si : st) {
-            for (ArcNode &node : graph[si]) {
-                addarc(*newgraph, i, indexinsets(sets, node.adjvex), node.val);
-            }
+        int si = *st.begin();
+        for (ArcNode &node : graph[si]) {
+            addarc(*newgraph, i, indexinsets(sets, node.adjvex), node.val);
         }
     }
 
