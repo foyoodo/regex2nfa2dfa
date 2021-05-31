@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_set>
 
 #include "algraph.h"
 #include "dfa.h"
@@ -13,8 +14,9 @@ using namespace std;
 static DFA type1, type2, type3, type4, type5;
 static ALGraph graph1, graph2, graph3, graph4, graph5;
 static int ln;
+static unordered_set<char> ops;
 
-void nexttoken(DFA &dfa, ALGraph &graph, string &s, int &k);
+int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k);
 string typeofdfa(DFA *dfa);
 
 void initdata() {
@@ -23,17 +25,45 @@ void initdata() {
     builddgraph(graph3, type3.moves);
     builddgraph(graph4, type4.moves);
     builddgraph(graph5, type5.moves);
+
+    ifstream in("ops.txt");
+    char op;
+    while (in >> op) {
+        ops.insert(op);
+    }
+    in.close();
 }
 
 void handlestr(string s) {
     int k = 0;
     while (k < s.size()) {
         int oldk = k;
-        nexttoken(type1, graph1, s, k);
-        nexttoken(type2, graph2, s, k);
-        nexttoken(type3, graph3, s, k);
-        nexttoken(type4, graph4, s, k);
-        nexttoken(type5, graph5, s, k);
+
+        k = nexttoken(type1, graph1, s, k);
+        if (k > oldk && k < s.size()) {
+            if (k == s.size() - 1) {
+                cout << typeofdfa(&type1) << ": " << s.substr(oldk, k - oldk) << endl;
+                continue;
+            } else if (k < s.size() - 1 && ops.find(s[k]) != ops.end()) {
+                cout << typeofdfa(&type1) << ": " << s.substr(oldk, k - oldk) << endl;
+            } else {
+                throw Exception(s.substr(oldk, s.size() - oldk), ln);
+                break;
+            }
+        }
+
+        k = nexttoken(type2, graph2, s, k);
+        k = nexttoken(type3, graph3, s, k);
+
+        int k4 = nexttoken(type4, graph4, s, k);
+        int k5 = nexttoken(type5, graph5, s, k);
+        if (k5 > k4) {
+            cout << typeofdfa(&type5) << ": " << s.substr(k, k5 - k) << endl;
+            k = k5;
+        } else if (k4 > k) {
+            cout << typeofdfa(&type4) << ": " << s.substr(k, k4 - k) << endl;
+            k = k4;
+        }
         if (k == oldk) {
             throw Exception(s.substr(k, s.size() - k), ln);
             break;
@@ -45,7 +75,7 @@ bool acceptfinal(DFA &dfa, int state) {
     return find(dfa.final.begin(), dfa.final.end(), state) != dfa.final.end();
 }
 
-void nexttoken(DFA &dfa, ALGraph &graph, string &s, int &k) {
+int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k) {
     int state = 0;
     int oldk = k;
     stack<int> stk;
@@ -67,9 +97,11 @@ void nexttoken(DFA &dfa, ALGraph &graph, string &s, int &k) {
         --k;
     }
 
-    if (k > oldk) {
+    if ((&dfa == &type2 || &dfa == &type3) && k > oldk) {
         cout << typeofdfa(&dfa) << ": " << s.substr(oldk, k - oldk) << endl;
     }
+
+    return k;
 }
 
 string typeofdfa(DFA *dfa) {
