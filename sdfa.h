@@ -30,6 +30,7 @@ DFA &simplifydfa(DFA &dfa) {
 
     ALGraph newgraph = rebuilddgraph(graph, sets);
 
+    // 设置 newdfa 的状态集与终态集
     for (int i = 0; i < sets.size(); ++i) {
         auto &st = sets[i];
         vector<int> state;
@@ -42,12 +43,14 @@ DFA &simplifydfa(DFA &dfa) {
         newdfa->states.push_back(std::move(state));
     }
 
+    // 设置 newdfa 的 move 函数
     for (int i = 0; i < newgraph.size(); ++i) {
         for (ArcNode &node : newgraph[i]) {
             newdfa->moves.emplace_back(i, node.adjvex, node.vals);
         }
     }
 
+    // 有限字符集与初态
     newdfa->sum = dfa.sum;
     newdfa->s0 = 0;
 
@@ -105,6 +108,7 @@ bool check(ALGraph &graph, sset<sset<int>> &sets, int t, int s, char w) {
     return ret;
 }
 
+// 对 sets 中的指定集合进行切分，返回 true 代表集合可切并已完成切分
 bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k) {
     bool ret = true;
     sset<int> &st = sets[k];
@@ -143,6 +147,7 @@ bool split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets, int k) {
     return ret;
 }
 
+// 对 sets 进行递归切分（每次切分成功后从第一个子集开始检验）
 void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
@@ -153,6 +158,7 @@ void split(ALGraph &graph, set<char> &sum, sset<sset<int>> &sets) {
     }
 }
 
+// 返回 si 所在子集的索引
 int indexinsets(sset<sset<int>> &sets, int si) {
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
@@ -163,11 +169,13 @@ int indexinsets(sset<sset<int>> &sets, int si) {
     return -1;
 }
 
+// 重建并返回最小化 DFA 对应的的 ALGraph
 ALGraph &rebuilddgraph(ALGraph &graph, sset<sset<int>> &sets) {
     ALGraph *newgraph = new ALGraph();
 
     for (int i = 0; i < sets.size(); ++i) {
         sset<int> &st = sets[i];
+        // 只需对子集中第一个状态的出度进行处理
         int si = *st.begin();
         for (ArcNode &node : graph[si]) {
             addarc(*newgraph, i, indexinsets(sets, node.adjvex), node.val);

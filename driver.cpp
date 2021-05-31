@@ -34,11 +34,13 @@ void initdata() {
     in.close();
 }
 
+// 处理单独字符串的方法
 void handlestr(string s) {
     int k = 0;
     while (k < s.size()) {
         int oldk = k;
 
+        // 引入对非法变量名的处理
         k = nexttoken(type1, graph1, s, k);
         if (k > oldk && k < s.size()) {
             if (k == s.size() - 1) {
@@ -55,6 +57,7 @@ void handlestr(string s) {
         k = nexttoken(type2, graph2, s, k);
         k = nexttoken(type3, graph3, s, k);
 
+        // 选择 KeyWord 与 Variable 中匹配较长的一个
         int k4 = nexttoken(type4, graph4, s, k);
         int k5 = nexttoken(type5, graph5, s, k);
         if (k5 > k4) {
@@ -64,6 +67,8 @@ void handlestr(string s) {
             cout << typeofdfa(&type4) << ": " << s.substr(k, k4 - k) << endl;
             k = k4;
         }
+
+        // 如果所有规则都无法匹配，抛出自定义异常
         if (k == oldk) {
             throw Exception(s.substr(k, s.size() - k), ln);
             break;
@@ -75,6 +80,7 @@ bool acceptfinal(DFA &dfa, int state) {
     return find(dfa.final.begin(), dfa.final.end(), state) != dfa.final.end();
 }
 
+// 对于 Relation 与 KeySymbol，识别后直接打印
 int nexttoken(DFA &dfa, ALGraph &graph, string &s, int k) {
     int state = 0;
     int oldk = k;
@@ -123,6 +129,7 @@ string typeofdfa(DFA *dfa) {
     return "Unknown  ";
 }
 
+// 读入 input.c 文件，并对抛出的异常进行处理
 void startdriver() {
     initdata();
 

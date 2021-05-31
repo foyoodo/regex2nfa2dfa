@@ -32,6 +32,7 @@ void newarc(ALGraph &graph, int l, int r, set<char> *chs) {
     graph[l].emplace_back(chs, r);
 }
 
+// 用于最小化 DFA 对应的 ALGraph，arc 可能存在多个字符
 void addarc(ALGraph &graph, int l, int r, char c) {
     increase(graph, max(l, r));
     int index = -1;
